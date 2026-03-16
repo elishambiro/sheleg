@@ -3,88 +3,97 @@
  *
  * Runs automatically after `npm install` (postinstall).
  *
- * On Windows: copies David.ttf and DavidBold.ttf from the system fonts
- *   directory (C:\Windows\Fonts\). David ships with every Windows installation.
+ * On Windows: copies David.ttf / DavidBold.ttf from the system fonts
+ *   directory (C:\Windows\Fonts\) if available.
  *
- * On macOS / Linux: downloads Frank Ruhl Libre from Google Fonts as a
- *   compatible open-source alternative (OFL licensed, similar serif style).
+ * Fallback (macOS, Linux, or Windows CI without David):
+ *   Downloads Noto Serif Hebrew from Google Fonts (OFL license, TTF format).
+ *   Uses a legacy User-Agent so Google Fonts returns TTF instead of WOFF2.
  */
 
 import fs from 'node:fs'
-import path from 'node:path'
 import https from 'node:https'
+import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
-const fontsDir = path.resolve(__dirname, '..', 'public', 'fonts')
+const fontsDir  = path.resolve(__dirname, '..', 'public', 'fonts')
+const REGULAR   = path.join(fontsDir, 'David.ttf')
+const BOLD      = path.join(fontsDir, 'DavidBold.ttf')
 
-const REGULAR_DEST = path.join(fontsDir, 'David.ttf')
-const BOLD_DEST    = path.join(fontsDir, 'DavidBold.ttf')
-
-// Google Fonts — Frank Ruhl Libre (OFL), closest open-source match to David
-const FALLBACK_REGULAR_URL = 'https://fonts.gstatic.com/s/frankruhllibre/v14/j8_v6-zQ3rXpceZj9cqnVhF5NH-iSq_E.ttf'
-const FALLBACK_BOLD_URL    = 'https://fonts.gstatic.com/s/frankruhllibre/v14/j8_w6-zQ3rXpceZj9cqnVhV5NH-iSq_2_oC7.ttf'
+// Legacy UA → Google Fonts returns TTF (not WOFF2)
+const LEGACY_UA = 'Mozilla/4.0 (compatible; MSIE 8.0; Windows NT 6.1)'
+const FONTS_API = 'https://fonts.googleapis.com/css?family=Noto+Serif+Hebrew:400,700&subset=hebrew'
 
 fs.mkdirSync(fontsDir, { recursive: true })
 
-const alreadyDone = fs.existsSync(REGULAR_DEST) && fs.existsSync(BOLD_DEST)
-if (alreadyDone) {
+if (fs.existsSync(REGULAR) && fs.existsSync(BOLD)) {
   console.log('Fonts already present, skipping setup.')
   process.exit(0)
 }
 
 if (process.platform === 'win32') {
-  setupWindows()
-} else {
-  await setupFallback()
-}
+  const sys     = path.join(process.env.SystemRoot ?? 'C:\\Windows', 'Fonts')
+  const srcReg  = path.join(sys, 'david.ttf')
+  const srcBold = path.join(sys, 'davidbd.ttf')
 
-// ─── Windows ─────────────────────────────────────────────────────────────────
-
-function setupWindows() {
-  const systemFonts = path.join(process.env.SystemRoot ?? 'C:\\Windows', 'Fonts')
-  const srcRegular  = path.join(systemFonts, 'david.ttf')
-  const srcBold     = path.join(systemFonts, 'davidbd.ttf')
-
-  if (!fs.existsSync(srcRegular) || !fs.existsSync(srcBold)) {
-    console.warn('David font not found in system fonts. Falling back to Frank Ruhl Libre.')
-    setupFallback()
-    return
+  if (fs.existsSync(srcReg) && fs.existsSync(srcBold)) {
+    fs.copyFileSync(srcReg,  REGULAR)
+    fs.copyFileSync(srcBold, BOLD)
+    console.log('David font copied from Windows system fonts.')
+    process.exit(0)
   }
 
-  fs.copyFileSync(srcRegular, REGULAR_DEST)
-  fs.copyFileSync(srcBold, BOLD_DEST)
-  console.log('David font copied from system fonts.')
+  console.log('David not found in system fonts, downloading fallback...')
 }
 
-// ─── macOS / Linux fallback ───────────────────────────────────────────────────
+await downloadFallback()
 
-async function setupFallback() {
-  console.log('Downloading Frank Ruhl Libre (open-source Hebrew font)...')
-  await download(FALLBACK_REGULAR_URL, REGULAR_DEST)
-  await download(FALLBACK_BOLD_URL, BOLD_DEST)
+// ─── Fallback: Noto Serif Hebrew via Google Fonts API ────────────────────────
+
+async function downloadFallback() {
+  console.log('Fetching font URLs from Google Fonts...')
+  const css = await fetchText(FONTS_API, LEGACY_UA)
+
+  const urls = [...css.matchAll(/url\((https:\/\/[^)]+\.ttf)\)/g)].map(m => m[1])
+  if (urls.length < 2) throw new Error(`Expected 2 TTF URLs, got ${urls.length}.\nCSS snippet:\n${css.slice(0, 500)}`)
+
+  console.log(`Downloading Noto Serif Hebrew (${urls.length} files)...`)
+  await download(urls[0], REGULAR)
+  await download(urls[1], BOLD)
   console.log('Fonts downloaded.')
+}
+
+function fetchText(url, userAgent) {
+  return new Promise((resolve, reject) => {
+    https.get(url, { headers: { 'User-Agent': userAgent } }, res => {
+      if (res.statusCode === 301 || res.statusCode === 302) {
+        return fetchText(res.headers.location, userAgent).then(resolve).catch(reject)
+      }
+      if (res.statusCode !== 200) {
+        return reject(new Error(`HTTP ${res.statusCode} fetching ${url}`))
+      }
+      let body = ''
+      res.on('data', chunk => { body += chunk })
+      res.on('end', () => resolve(body))
+    }).on('error', reject)
+  })
 }
 
 function download(url, dest) {
   return new Promise((resolve, reject) => {
     const file = fs.createWriteStream(dest)
-    https.get(url, (res) => {
+    https.get(url, { headers: { 'User-Agent': LEGACY_UA } }, res => {
       if (res.statusCode === 301 || res.statusCode === 302) {
         file.close()
         fs.unlinkSync(dest)
-        download(res.headers.location, dest).then(resolve).catch(reject)
-        return
+        return download(res.headers.location, dest).then(resolve).catch(reject)
       }
       if (res.statusCode !== 200) {
-        reject(new Error(`Failed to download font: HTTP ${res.statusCode}`))
-        return
+        return reject(new Error(`HTTP ${res.statusCode} downloading ${url}`))
       }
       res.pipe(file)
       file.on('finish', () => file.close(resolve))
-    }).on('error', (err) => {
-      fs.unlinkSync(dest)
-      reject(err)
-    })
+    }).on('error', err => { fs.unlinkSync(dest); reject(err) })
   })
 }
