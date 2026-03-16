@@ -29,6 +29,7 @@ jobs:
       APPLE_APP_SPECIFIC_PASSWORD: ${{ secrets.APPLE_APP_SPECIFIC_PASSWORD }}
       APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
       WINDOWS_CERT_PASSWORD: ${{ secrets.WINDOWS_CERT_PASSWORD }}
+      WINDOWS_CERT_BASE64: ${{ secrets.WINDOWS_CERT_BASE64 }}
 
     steps:
       - name: Checkout
@@ -48,7 +49,7 @@ jobs:
         run: npm run prepare:mac-icon
 
       - name: Prepare Windows signing certificate
-        if: runner.os == 'Windows' && secrets.WINDOWS_CERT_BASE64 != ''
+        if: runner.os == 'Windows' && env.WINDOWS_CERT_BASE64 != ''
         shell: pwsh
         run: |
           $certPath = Join-Path $env:RUNNER_TEMP 'sheleg-signing-cert.pfx'
