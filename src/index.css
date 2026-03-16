@@ -1,0 +1,82 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  font-family: 'Segoe UI', system-ui, -apple-system, BlinkMacSystemFont, 'Helvetica Neue', sans-serif;
+  font-size: 14px;
+  direction: rtl;
+}
+
+@font-face {
+  font-family: 'David';
+  src: url('/fonts/David.ttf') format('truetype');
+  font-weight: 400;
+}
+
+@font-face {
+  font-family: 'David';
+  src: url('/fonts/DavidBold.ttf') format('truetype');
+  font-weight: 700;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background-color: #f1f3f5;
+  color: #212529;
+  overflow: hidden;
+  height: 100vh;
+}
+
+#root {
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Scrollbars */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: #f1f3f5;
+}
+::-webkit-scrollbar-thumb {
+  background: #ced4da;
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #adb5bd;
+}
+
+/* Drop zone active */
+.drop-active {
+  border-color: #4263eb !important;
+  background-color: #ebefff !important;
+}
+
+/* DND dragging item */
+.dnd-dragging {
+  opacity: 0.5;
+}
+
+/* Annex label stamp */
+.annex-stamp {
+  background: #364fc7;
+  color: white;
+  border-radius: 4px;
+  padding: 2px 8px;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+@layer utilities {
+  .text-xxs {
+    font-size: 0.65rem;
+  }
+}

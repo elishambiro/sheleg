@@ -1,0 +1,41 @@
+# Dependencies
+node_modules/
+
+# Build outputs
+dist/
+dist-electron/
+out/
+
+# Electron Forge packaging
+desktop-release/
+
+# Generated macOS icon (built on-demand by prepare-macos-icon.mjs)
+electron/assets/icon.icns
+
+# Personal / test files
+files/
+
+# Fonts — downloaded automatically by postinstall (see scripts/setup-fonts.mjs)
+public/fonts/
+
+# Environment variables
+.env
+.env.local
+.env.*.local
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# OS
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+# Editor
+.vscode/settings.json
+.idea/
+
+# Claude Code memory (personal assistant context)
+.claude/
