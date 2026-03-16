@@ -18,4 +18,17 @@ export default defineConfig({
   server: {
     port: 3000,
   },
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          'vendor-react':   ['react', 'react-dom'],
+          'vendor-pdf':     ['pdf-lib', '@pdf-lib/fontkit'],
+          'vendor-xlsx':    ['xlsx'],
+          'vendor-mammoth': ['mammoth'],
+          'vendor-dnd':     ['@dnd-kit/core', '@dnd-kit/sortable', '@dnd-kit/utilities'],
+        },
+      },
+    },
+  },
 })

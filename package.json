@@ -10,6 +10,8 @@
   "main": "dist-electron/main.js",
   "scripts": {
     "postinstall": "node scripts/setup-fonts.mjs",
+    "test": "vitest run",
+    "test:watch": "vitest",
     "dev": "vite",
     "dev:desktop": "npm run build:electron && concurrently -k -n renderer,desktop -c cyan,magenta \"npm run dev -- --host 127.0.0.1 --port 3000\" \"wait-on tcp:127.0.0.1:3000 && cross-env SHELEG_RENDERER_URL=http://127.0.0.1:3000 electron .\"",
     "build": "tsc && vite build",
@@ -61,6 +63,7 @@
     "tailwindcss": "^3.4.17",
     "typescript": "^5.7.3",
     "vite": "^6.0.11",
+    "vitest": "^4.1.0",
     "wait-on": "^9.0.4"
   }
 }
