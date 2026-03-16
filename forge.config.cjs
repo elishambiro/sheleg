@@ -154,6 +154,7 @@ module.exports = {
       platforms: ['darwin'],
       config: {
         format: 'ULFO',
+        title: 'Sheleg',
       },
     },
   ],
