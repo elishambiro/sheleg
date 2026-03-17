@@ -6,6 +6,16 @@ Built for lawyers and legal teams working with Hebrew documents - upload main do
 
 ---
 
+## Screenshots
+
+![Main UI](docs/screenshots/main-ui.png)
+*3-panel layout: live PDF preview (left), main documents and annexes (center), project sidebar (right)*
+
+![Settings Panel](docs/screenshots/settings.png)
+*Compilation settings: language, numbering style, annex label position, cover page, table of contents, page numbers*
+
+---
+
 ## Features
 
 - **Drag-and-drop upload** - main documents and annexes, sorted automatically
