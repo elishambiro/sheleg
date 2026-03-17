@@ -1,7 +1,7 @@
 {
   "name": "sheleg-legal",
   "private": true,
-  "version": "0.1.0",
+  "version": "1.0.0",
   "productName": "Sheleg - Legal Document Compiler",
   "description": "Desktop app for compiling legal document bundles into a single PDF.",
   "author": "Sheleg Team",
